@@ -8,7 +8,7 @@ This repository aims to provide a workflow to compile the [PCRaster](https://git
 ## Purpose
 
 - Provide an automated workflow using GitHub Actions to compile specific versions of PCRaster;
-- Ensure compatibility with Debian 12 (Bullseye) by using the [`python:3.11-slim`](https://hub.docker.com/layers/library/python/3.11-slim/images/sha256-1591aa8c01b5b37ab31dbe5662c5bdcf40c2f1bce4ef1c1fd24802dae3d01052?context=explore) base image.
+- Ensure compatibility with Debian 12 (bookworm) by using the [`python:3.11-slim`](https://hub.docker.com/layers/library/python/3.11-slim/images/sha256-1591aa8c01b5b37ab31dbe5662c5bdcf40c2f1bce4ef1c1fd24802dae3d01052?context=explore) base image.
 
 ## Credits
 
