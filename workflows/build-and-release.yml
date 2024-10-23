@@ -1,0 +1,99 @@
+name: Build and Release PCRaster
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g., v4.4.1)'
+        required: true
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.11-slim
+    steps:
+      - name: Verificar se a tag existe no repositório PCRaster
+        run: |
+          TAG=${{ github.event.inputs.tag }}
+          if git ls-remote --tags https://github.com/pcraster/pcraster.git | grep -q "refs/tags/$TAG$"; then
+            echo "A tag $TAG existe no repositório PCRaster."
+          else
+            echo "A tag $TAG não existe no repositório PCRaster. Encerrando o workflow."
+            exit 1
+          fi
+
+      - name: Instalar dependências
+        run: |
+          apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential \
+            ccache \
+            cmake \
+            bison \
+            flex \
+            libboost-all-dev \
+            python3-dev \
+            python3-docopt \
+            python3-numpy \
+            python3-pybind11 \
+            libgdal-dev \
+            libgl1-mesa-dev \
+            libnetcdf-dev \
+            libproj-dev \
+            libxerces-c-dev \
+            libxml2-dev \
+            libz-dev \
+            qtbase5-dev qtdeclarative5-dev libqt5charts5-dev libqwt-qt5-dev libqt5opengl5-dev \
+            libncurses5-dev \
+            libhdf5-dev \
+            swig
+
+      - name: Clonar o repositório PCRaster
+        run: |
+          git clone --recursive https://github.com/pcraster/pcraster.git /tmp/pcraster
+          cd /tmp/pcraster
+          git checkout ${{ github.event.inputs.tag }}
+
+      - name: Compilar o PCRaster
+        run: |
+          cd /tmp/pcraster
+          mkdir build && cd build
+          cmake -G"Unix Makefiles" .. \
+            -DCMAKE_INSTALL_PREFIX=/opt/pcraster \
+            -DPython3_EXECUTABLE:FILEPATH=/usr/local/bin/python3 \
+            -DPython3_INCLUDE_DIR:PATH=$(python3 -c "from sysconfig import get_paths; print(get_paths()['include'])") \
+            -DPython3_NumPy_INCLUDE_DIR:PATH=$(python3 -c "import numpy; print(numpy.get_include())")
+          cmake --build . --target all -- -j$(nproc)
+          cmake --build . --target install
+
+      - name: Empacotar a compilação
+        run: |
+          cd /opt
+          tar czf pcraster-${{ github.event.inputs.tag }}-slim.tar.gz pcraster
+          mv pcraster-*-slim.tar.gz $GITHUB_WORKSPACE/
+
+      - name: Configurar Git para criar a release
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Criar Release no GitHub
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          release_name: Release ${{ github.event.inputs.tag }}
+          draft: false
+          prerelease: false
+
+      - name: Fazer upload do artefato da release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/pcraster-${{ github.event.inputs.tag }}-slim.tar.gz
+          asset_name: pcraster-${{ github.event.inputs.tag }}-slim.tar.gz
+          asset_content_type: application/gzip
