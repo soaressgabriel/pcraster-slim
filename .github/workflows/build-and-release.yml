@@ -16,7 +16,7 @@ jobs:
       - name: Verificar se a tag existe no repositório PCRaster
         run: |
           TAG=${{ github.event.inputs.tag }}
-          if git ls-remote --tags https://github.com/pcraster/pcraster.git | grep -q "refs/tags/$TAG$"; then
+          if [ -n "$(git ls-remote --tags https://github.com/pcraster/pcraster.git refs/tags/$TAG)" ]; then
             echo "A tag $TAG existe no repositório PCRaster."
           else
             echo "A tag $TAG não existe no repositório PCRaster. Encerrando o workflow."
