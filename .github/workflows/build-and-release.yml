@@ -13,6 +13,10 @@ jobs:
     container:
       image: python:3.11-slim
     steps:
+
+      - name: Instalar Git
+        run: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git
+
       - name: Verificar se a tag existe no repositório PCRaster
         run: |
           TAG=${{ github.event.inputs.tag }}
