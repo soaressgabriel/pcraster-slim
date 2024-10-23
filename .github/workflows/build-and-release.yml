@@ -65,8 +65,8 @@ jobs:
           cmake -G"Unix Makefiles" .. \
             -DCMAKE_INSTALL_PREFIX=/opt/pcraster \
             -DPython3_EXECUTABLE:FILEPATH=/usr/local/bin/python3 \
-            -DPython3_INCLUDE_DIR:PATH=$(python3 -c "from sysconfig import get_paths; print(get_paths()['include'])") \
-            -DPython3_NumPy_INCLUDE_DIR:PATH=$(python3 -c "import numpy; print(numpy.get_include())")
+            -DPython3_INCLUDE_DIR:PATH=/usr/local/include/python3.11 \
+            -DPython3_NumPy_INCLUDE_DIR:PATH=/usr/lib/python3/dist-packages/numpy/core/include
           cmake --build . --target all -- -j$(nproc)
           cmake --build . --target install
 
