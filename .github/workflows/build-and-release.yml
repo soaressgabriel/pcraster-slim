@@ -10,6 +10,8 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write    
     container:
       image: python:3.11-slim
     steps:
@@ -76,18 +78,13 @@ jobs:
           tar czf pcraster-${{ github.event.inputs.tag }}-slim.tar.gz pcraster
           mv pcraster-*-slim.tar.gz $GITHUB_WORKSPACE/
 
-      - name: Configurar Git para criar a release
-        run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-
       - name: Create release
         uses: softprops/action-gh-release@v2
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-            tag_name: ${{ github.ref_name }}
-            name: ${{ github.ref_name }}
+            tag_name: ${{ github.event.inputs.tag }}
+            name: pcraster-${{ github.event.inputs.tag }}-slim
             draft: false
             prerelease: false
             files: |
