@@ -1,4 +1,4 @@
-[!CAUTION]
+> [!CAUTION]
 > This repository is not affiliated with the official PCRaster project. **For official downloads, documentation, and support, please visit the original repository at [https://github.com/pcraster/pcraster.git](https://github.com/pcraster/pcraster.git)**.
 
 # PCRaster-Slim
